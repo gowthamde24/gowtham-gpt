@@ -1,22 +1,26 @@
+"""Random batch sampling for next-token-prediction training."""
+
+from typing import Optional, Tuple
+
 import torch
 from torchtyping import TensorType
-from typing import Tuple
 
-class Solution:
-    def create_batches(self, data: TensorType[int], context_length: int, batch_size: int) -> Tuple[TensorType[int], TensorType[int]]:
-        # data: 1D tensor of encoded text (integer token IDs)
-        # context_length: number of tokens in each training example
-        # batch_size: number of examples per batch
-        #
-        # Return (X, Y) where:
-        # - X has shape (batch_size, context_length)
-        # - Y has shape (batch_size, context_length)
-        # - Y is X shifted right by 1 (Y[i][j] = data[start_i + j + 1])
-        #
-        # Use torch.manual_seed(0) before generating random start indices
-        # Use torch.randint to pick random starting positions
-        torch.manual_seed(0)
-        ix = torch.randint(len(data)-context_length,(batch_size,))
-        x  = torch.stack([data[i:i+context_length]for i in ix])
-        y = torch.stack([data[i + 1:i + 1 + context_length] for i in ix])
-        return x, y
+
+def get_batch(
+    data: TensorType[int],
+    context_length: int,
+    batch_size: int,
+    generator: Optional[torch.Generator] = None,
+) -> Tuple[TensorType[int], TensorType[int]]:
+    """Sample `batch_size` random windows of `context_length` tokens from `data`.
+
+    Returns (X, Y) where Y is X shifted one position to the right — the standard
+    next-token-prediction training pair. Pass a `torch.Generator` for reproducible
+    sampling; omit it to get fresh random batches each call, as real training needs.
+    """
+    start_indices = torch.randint(
+        len(data) - context_length, (batch_size,), generator=generator
+    )
+    x = torch.stack([data[i : i + context_length] for i in start_indices])
+    y = torch.stack([data[i + 1 : i + 1 + context_length] for i in start_indices])
+    return x, y

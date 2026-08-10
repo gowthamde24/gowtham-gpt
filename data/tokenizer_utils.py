@@ -1,44 +1,43 @@
 from typing import List, Dict
 
-class Solution:
+
+class GreedyTokenizer:
+    """Greedy longest-match tokenizer over a fixed vocabulary, with helpers for analyzing tokenization efficiency."""
+
     def tokenize_numbers(self, numbers: List[int], vocab: Dict[str, int]) -> List[List[str]]:
-        # Tokenize each number using greedy left-to-right longest match.
-        # Return a list of token lists showing how each number gets split.
-        result=[]
+        """Tokenizes each number's string form, returning the token list for each."""
+        result = []
         for num in numbers:
             text = str(num)
             tokens = self._greedy_tokenize(text, vocab)
             result.append(tokens)
         return result
 
-
     def count_tokens(self, text: str, vocab: Dict[str, int]) -> int:
-        # Count how many tokens the text uses with greedy tokenization.
-        # Use greedy left-to-right longest match.
-        tokens = self._greedy_tokenize(text,vocab)
+        """Number of tokens `text` decomposes into under greedy tokenization."""
+        tokens = self._greedy_tokenize(text, vocab)
         return len(tokens)
 
     def fertility_score(self, text: str, vocab: Dict[str, int]) -> float:
-        # Compute tokens-per-word ratio (fertility).
-        # Higher = more expensive and less efficient.
-        # Round to 4 decimal places.
-        tokens = self._greedy_tokenize(text,vocab)
+        """Tokens-per-word ratio; higher means more expensive, less efficient tokenization."""
+        tokens = self._greedy_tokenize(text, vocab)
         words = text.split()
-        return round(len(tokens)/len(words),4)
+        return round(len(tokens) / len(words), 4)
+
     def _greedy_tokenize(self, text: str, vocab: Dict[str, int]) -> List[str]:
         tokens = []
-        i=0
+        i = 0
         while i < len(text):
             best = None
-            for length in range(len(text)-i,0,-1):
+            for length in range(len(text) - i, 0, -1):
                 substr = text[i:i + length]
                 if substr in vocab:
                     best = substr
                     break
             if best is None:
                 tokens.append(text[i])
-                i+=1
+                i += 1
             else:
                 tokens.append(best)
-                i+=len(best)
+                i += len(best)
         return tokens

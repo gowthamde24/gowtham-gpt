@@ -1,52 +1,24 @@
+"""Multi-headed causal self-attention: several attention heads run in parallel and merged."""
+
 import torch
 import torch.nn as nn
 from torchtyping import TensorType
 
-class MultiHeadedSelfAttention(nn.Module):
+from .attention import SingleHeadAttention
+
+
+class MultiHeadSelfAttention(nn.Module):
+    """Runs `num_heads` independent attention heads and projects their concatenated output."""
 
     def __init__(self, embedding_dim: int, attention_dim: int, num_heads: int):
         super().__init__()
-        torch.manual_seed(0)
-        self.att_heads = nn.ModuleList()
-        for i in range(num_heads):
-            self.att_heads.append(self.SingleHeadAttention(embedding_dim, attention_dim//num_heads))
-        self.output_proj = nn.Linear(attention_dim, attention_dim, bias = False)
-        # Create num_heads SingleHeadAttention instances using nn.ModuleList
-        # Each head size = attention_dim // num_heads
-        # Use: self.SingleHeadAttention(embedding_dim, head_size)
-        # After the heads, add an output projection: nn.Linear(attention_dim, attention_dim, bias=False)
-        
+        head_size = attention_dim // num_heads
+        self.att_heads = nn.ModuleList(
+            SingleHeadAttention(embedding_dim, head_size) for _ in range(num_heads)
+        )
+        self.output_proj = nn.Linear(attention_dim, attention_dim, bias=False)
 
     def forward(self, embedded: TensorType[float]) -> TensorType[float]:
-        # Run each head on the input, concatenate outputs along dim=2
-        # Pass concatenated result through the output projection (W_O)
-        # Return result rounded to 4 decimal places
-        head_outputs = []
-        for head in self.att_heads:
-            head_outputs.append(head(embedded))
+        head_outputs = [head(embedded) for head in self.att_heads]
         concatenated = torch.cat(head_outputs, dim=2)
-        return torch.round(self.output_proj(concatenated),decimals = 4)
-
-    class SingleHeadAttention(nn.Module):
-        def __init__(self, embedding_dim: int, attention_dim: int):
-            super().__init__()
-            torch.manual_seed(0)
-            self.key_gen = nn.Linear(embedding_dim, attention_dim, bias=False)
-            self.query_gen = nn.Linear(embedding_dim, attention_dim, bias=False)
-            self.value_gen = nn.Linear(embedding_dim, attention_dim, bias=False)
-
-        def forward(self, embedded: TensorType[float]) -> TensorType[float]:
-            k = self.key_gen(embedded)
-            q = self.query_gen(embedded)
-            v = self.value_gen(embedded)
-
-            scores = q @ torch.transpose(k, 1, 2) # @ is the same as torch.matmul()
-            context_length, attention_dim = k.shape[1], k.shape[2]
-            scores = scores / (attention_dim ** 0.5)
-
-            lower_triangular = torch.tril(torch.ones(context_length, context_length))
-            mask = lower_triangular == 0
-            scores = scores.masked_fill(mask, float('-inf'))
-            scores = nn.functional.softmax(scores, dim = 2)
-
-            return scores @ v
+        return self.output_proj(concatenated)

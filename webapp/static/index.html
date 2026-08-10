@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>gowtham-gpt</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">✦</div>
+    <div class="brand-name">gowtham-gpt</div>
+  </div>
+  <button class="new-chat" id="newChatBtn">
+    <span class="plus">+</span> New chat
+  </button>
+  <div class="sidebar-footer">
+    <div class="model-info" id="modelInfo">loading model…</div>
+  </div>
+</aside>
+
+<main class="chat">
+  <header class="chat-header">
+    <div class="chat-title">gowtham-gpt</div>
+    <button class="settings-toggle" id="settingsToggle" title="Generation settings">⚙</button>
+  </header>
+
+  <div class="settings-panel" id="settingsPanel">
+    <label>
+      Temperature <span id="tempValue">0.8</span>
+      <input type="range" id="temperature" min="0.1" max="1.5" step="0.05" value="0.8" />
+    </label>
+    <label>
+      Reply length <span id="lenValue">200</span>
+      <input type="range" id="newChars" min="40" max="600" step="20" value="200" />
+    </label>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-mark">✦</div>
+      <div class="empty-title">gowtham-gpt</div>
+      <div class="empty-subtitle">A character-level GPT, trained from scratch. Say something.</div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="composer-pill">
+      <textarea id="input" placeholder="Message gowtham-gpt…" rows="1"></textarea>
+      <button id="sendBtn" title="Send">➤</button>
+    </div>
+    <div class="composer-hint">This model continues text character-by-character — it isn't instruction-tuned, so replies can wander.</div>
+  </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
